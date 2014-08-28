@@ -5,7 +5,9 @@ import (
     "github.com/mitchellh/goamz/s3"
     "os"
     "sort"
-    "strconv"
+    // "strconv"
+    "flag"
+    "fmt"
 )
 
 type byLastModified []s3.Key
@@ -15,11 +17,15 @@ func (v byLastModified) Less(i, j int) bool { return v[i].LastModified < v[j].La
 
 func main() {
 
-    count, err := strconv.ParseInt(os.Args[1], 10, 0)
+    var count int
+    var view bool
+    var sort_key string
 
-    if count == 0 {
-        count = 10
-    }
+    flag.IntVar(&count, "count", 10, "number of files to left")
+    flag.BoolVar(&view, "view", false, "just show the files")
+    flag.StringVar(&sort_key, "sort", "asc", "define sort - asc or desc")
+
+    flag.Parse()
 
     auth := aws.Auth{
         os.Getenv("S3_KEY"),
@@ -58,15 +64,28 @@ func main() {
     }
 
     if len(arr.Contents) < int(count) {
-        println("Nothing to purge")
+        fmt.Println("Nothing to purge")
         os.Exit(0)
     }
 
-    sort.Sort(byLastModified(arr.Contents))
+    if sort_key == "asc" {
+        sort.Sort(byLastModified(arr.Contents))
+    }
+
+    if sort_key == "desc" {
+        sort.Sort(sort.Reverse(byLastModified(arr.Contents)))
+    }
 
     toDelete := arr.Contents[0:len(arr.Contents) - int(count)]
 
-    println("Deleting", len(toDelete), "items")
+    if view == true {
+        for n := 0; n < len(toDelete); n ++ {
+            fmt.Println(toDelete[n].Key, toDelete[n].LastModified)
+        }
+        os.Exit(0)
+    }
+
+    fmt.Println("Deleting", len(toDelete), "items")
 
     for n := 0; n < len(toDelete); n ++ {
 
@@ -76,6 +95,6 @@ func main() {
             panic("Error in deleting")
         }
 
-        println("Deleted", n + 1, toDelete[n].Key)
+        fmt.Println("Deleted", n + 1, toDelete[n].Key)
     }
 }
