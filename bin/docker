@@ -1,0 +1,10 @@
+#!/bin/bash
+
+VOLUME="${DOCKER_REMOTE_PATH}${PWD#${DOCKER_CLIENT_PATH}}/:/purger"
+
+docker run -i -t \
+    --rm \
+    -w /purger \
+    -v $VOLUME \
+    michaloo/golangdev \
+    $@

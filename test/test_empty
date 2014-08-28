@@ -1,0 +1,3 @@
+#!/bin/bash
+
+S3_PATH=asadfasdf go run purger.go

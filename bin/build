@@ -1,0 +1,13 @@
+#!/bin/bash
+
+curl -L https://github.com/rlmcpherson/s3gof3r/releases/download/v0.4.3/gof3r_0.4.3_linux_amd64.tar.gz \
+    | tar -zx --strip-components=1 -C /usr/local/bin gof3r_0.4.3_linux_amd64/gof3r
+
+
+cd /purger
+go get
+rm -rf dist
+mkdir -p dist
+cd ./dist
+go build -o purger /purger/purger.go
+tar -cf purger.tar.gz purger
